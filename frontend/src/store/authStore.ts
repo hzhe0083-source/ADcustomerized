@@ -15,7 +15,7 @@ interface AuthState {
   roles: Role[]
   
   // 权限管理
-  permissions: Permission[]
+  allPermissions: Permission[]
   
   // Actions
   login: (user: User, token: string, permissions: string[]) => void

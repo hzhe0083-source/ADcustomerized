@@ -16,9 +16,10 @@ const LoginPage: React.FC = () => {
     try {
       setLoading(true)
       const response = await login({ username: values.username, password: values.password })
-      
-      // 使用Zustand保存用户信息
-      setAuth(response.data.user, response.data.access)
+
+      setAuth(response.user, response.access, response.permissions || [])
+      localStorage.setItem('token', response.access)
+      localStorage.setItem('user', JSON.stringify(response.user))
       
       message.success('登录成功！')
       navigate('/')

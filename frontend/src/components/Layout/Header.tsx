@@ -72,7 +72,7 @@ const Header: React.FC = () => {
   ]
 
   return (
-    <AntHeader className="bg-white shadow-md px-4">
+    <AntHeader className="bg-white shadow-md px-4 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div
@@ -94,7 +94,7 @@ const Header: React.FC = () => {
         {/* 右侧操作区 */}
         <div className="flex items-center space-x-4">
           {/* 购物车 */}
-          <Badge count={cartItemCount} showZero>
+          <Badge count={cartItemCount} showZero overflowCount={99}>
             <Button
               type="text"
               icon={<ShoppingCartOutlined />}

@@ -18,11 +18,7 @@ const OrderDetailPage: React.FC = () => {
       
       try {
         const response = await getOrderById(orderId)
-        if (response.data?.success) {
-          setOrder(response.data.data)
-        } else {
-          console.error('获取订单失败:', response.data?.message || '未知错误')
-        }
+        setOrder(response)
       } catch (error) {
         console.error('获取订单失败:', error)
       } finally {

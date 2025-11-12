@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3000/api'
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -15,7 +15,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Token ${token}`
     }
     return config
   },
@@ -85,7 +85,7 @@ export const createOrder = async (orderData: {
   }>
   totalAmount: number
 }) => {
-  return api.post('/orders', orderData)
+  return api.post('/orders/', orderData)
 }
 
 export const getOrders = async (params?: {
@@ -97,11 +97,11 @@ export const getOrders = async (params?: {
   endDate?: string
   searchText?: string
 }) => {
-  return api.get('/orders', { params })
+  return api.get('/orders/', { params })
 }
 
 export const getOrderById = async (id: string) => {
-  return api.get(`/orders/${id}`)
+  return api.get(`/orders/${id}/`)
 }
 
 export const getWorkOrderById = async (id: string) => {
@@ -109,7 +109,7 @@ export const getWorkOrderById = async (id: string) => {
 }
 
 export const updateOrderStatus = async (id: string, status: string) => {
-  return api.patch(`/orders/${id}/status`, { status })
+  return api.patch(`/orders/${id}/status/`, { status })
 }
 
 // 工作订单相关

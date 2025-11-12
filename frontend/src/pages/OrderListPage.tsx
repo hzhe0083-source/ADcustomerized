@@ -53,16 +53,13 @@ const OrderListPage: React.FC = () => {
         searchText: filters.searchText
       })
 
-      if (response.data?.success) {
-        setOrders(response.data.data.items)
-        setPagination({
-          current: page,
-          pageSize,
-          total: response.data.data.total
-        })
-      } else {
-        message.error('获取订单列表失败')
-      }
+      const data = (response && (response as any).results) ? (response as any) : { results: response || [], count: 0 }
+      setOrders(data.results || [])
+      setPagination({
+        current: page,
+        pageSize,
+        total: data.count || (data.results?.length || 0)
+      })
     } catch (error) {
       message.error('获取订单列表失败')
     } finally {
