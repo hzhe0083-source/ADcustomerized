@@ -41,7 +41,13 @@
             <svg v-if="sheets.length" :viewBox="'0 0 '+sheet.width+' '+sheet.height" :width="svgW" :height="svgH" @mousemove="onMove" @mouseup="onUp" @mouseleave="onUp">
               <rect x="0" y="0" :width="sheet.width" :height="sheet.height" fill="#fff" stroke="#e2e8f0"/>
               <g v-for="(p,i) in placements" :key="i" :transform="'translate('+p.x+','+p.y+')'">
-                <rect :x="0" :y="0" :width="p.w" :height="p.h" :fill="picked===i?'#fde68a':'#dbeafe'" stroke="#60a5fa" @mousedown="onDown(i,$event)"/>
+                <template v-if="itemMap[p.id]?.thumb">
+                  <image :href="itemMap[p.id].thumb" x="0" y="0" :width="p.w" :height="p.h" preserveAspectRatio="xMidYMid slice" @mousedown="onDown(i,$event)"/>
+                  <rect :x="0" :y="0" :width="p.w" :height="p.h" fill="none" stroke="#60a5fa"/>
+                </template>
+                <template v-else>
+                  <rect :x="0" :y="0" :width="p.w" :height="p.h" :fill="picked===i?'#fde68a':'#dbeafe'" stroke="#60a5fa" @mousedown="onDown(i,$event)"/>
+                </template>
                 <text :x="4" :y="12" font-size="12" fill="#334155">{{ p.id }}</text>
               </g>
             </svg>
@@ -63,6 +69,12 @@ const margin = ref(15)
 const item = reactive({ w: 1000, h: 800, qty: 1 })
 
 const files = ref<File[]>([])
+const thumbs = ref<Record<string,string>>({})
+const itemMap = computed(()=>{
+  const m: Record<string, any> = {}
+  items.value.forEach(it=>{ if (it && it.id) m[it.id] = it })
+  return m
+})
 const items = ref<any[]>([])
 const sheets = ref<any[]>([])
 const placements = ref<any[]>([])
@@ -75,7 +87,14 @@ const svgH = computed(()=> (sheet.height*scale.value))
 
 function pickFiles(e: Event){
   const input = e.target as HTMLInputElement
-  if (input.files) files.value = Array.from(input.files)
+  if (input.files){
+    files.value = Array.from(input.files)
+    files.value.forEach(f=>{
+      const reader = new FileReader()
+      reader.onload = () => { thumbs.value[f.name] = String(reader.result || '') }
+      reader.readAsDataURL(f)
+    })
+  }
 }
 
 function addRect(){
@@ -88,13 +107,16 @@ async function doVectorize(){
   const fd = new FormData()
   files.value.forEach(f=> fd.append('files', f))
   try{
-    const res = await vectorizeFiles(fd)
-    const arr = res?.results || []
-    arr.forEach((r: any, idx: number) => {
-      const w = Number(r.bbox?.maxX - r.bbox?.minX || r.width)
-      const h = Number(r.bbox?.maxY - r.bbox?.minY || r.height)
-      items.value.push({ id: r.name || ('I'+idx), w, h, qty: 1, rotate: true })
-    })
+  const res = await vectorizeFiles(fd)
+  const arr = res?.results || []
+  arr.forEach((r: any, idx: number) => {
+    if (r.error) return
+    const w = Number(r.width)
+    const h = Number(r.height)
+    const id = r.name || ('I'+idx)
+    const thumb = r.dataUrl || (thumbs.value[r.name || ''] || '')
+    items.value.push({ id, w, h, qty: 1, rotate: true, thumb })
+  })
   }catch(e:any){
     alert(e?.response?.data?.detail || '矢量化失败')
   }

@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from typing import List, Dict, Tuple
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageFile
+import base64
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -153,12 +155,26 @@ class VectorizePlaceholderAPIView(APIView):
         max_side = int(request.data.get('max_side') or 600)
         results = []
         for f in files:
+            logs = []
             try:
-                img = Image.open(BytesIO(f.read())).convert('RGBA')
+                raw = f.read()
+                if len(raw) == 0:
+                    results.append({'name': f.name, 'error': '文件为空'})
+                    continue
+                # 基本格式校验
+                ext = (f.name.split('.')[-1] or '').lower()
+                if ext not in {'png','jpg','jpeg','tif','tiff'}:
+                    results.append({'name': f.name, 'error': '不支持的格式', 'ext': ext})
+                    continue
+                img = Image.open(BytesIO(raw)).convert('RGBA')
+                logs.append({'step':'open','mode': img.mode})
             except Exception:
                 results.append({'name': f.name, 'error': '无法读取图像'})
                 continue
             w0, h0 = img.size
+            if w0 <= 1 or h0 <= 1 or w0 > 8000 or h0 > 8000:
+                results.append({'name': f.name, 'error': '尺寸异常', 'width': w0, 'height': h0})
+                continue
             # 缩放到 max_side 以内以加速
             scale = 1.0
             if max(w0, h0) > max_side:
@@ -167,25 +183,61 @@ class VectorizePlaceholderAPIView(APIView):
             w, h = img.size
             px = img.load()
             pts: List[Tuple[int,int]] = []
-            step = max(1, int(max(1, max(w,h)) // 200))  # 采样步长
+            step = max(1, int(max(1, max(w,h)) // 300))  # 更细采样
+            # 同时使用透明度、亮度与边缘梯度三种判定
+            def lum(r,g,b):
+                return (0.299*r + 0.587*g + 0.114*b)
             for y in range(0, h, step):
                 for x in range(0, w, step):
                     r,g,b,a = px[x,y]
-                    if a > 10 and (r+g+b)/3 < threshold:  # 简易前景判断
+                    if a <= 10:
+                        continue
+                    L = lum(r,g,b)
+                    edge = 0
+                    if x+1 < w:
+                        r2,g2,b2,a2 = px[x+1,y]
+                        edge = max(edge, abs(int(lum(r2,g2,b2) - L)))
+                    if y+1 < h:
+                        r3,g3,b3,a3 = px[x,y+1]
+                        edge = max(edge, abs(int(lum(r3,g3,b3) - L)))
+                    if L < threshold or edge > 12:
                         pts.append((x,y))
             if not pts:
+                # 兜底使用整图
                 pts = [(0,0),(w,0),(w,h),(0,h)]
             hull = _convex_hull(pts)
             # 还原到原图尺寸
             inv = 1.0/scale
             hull_orig = [(round(x*inv,2), round(y*inv,2)) for x,y in hull]
+            # 宽高兜底，避免 0 尺寸
+            minX = min(x for x,_ in hull_orig); minY = min(y for _,y in hull_orig)
+            maxX = max(x for x,_ in hull_orig); maxY = max(y for _,y in hull_orig)
+            if maxX - minX < 1 or maxY - minY < 1:
+                minX, minY, maxX, maxY = 0, 0, w0, h0
             points_attr = ' '.join([f"{x},{y}" for x,y in hull_orig])
             svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="{w0}" height="{h0}"><polygon points="{points_attr}" fill="none" stroke="black"/></svg>'
             bbox = {
-                'minX': min(x for x,_ in hull_orig),
-                'minY': min(y for _,y in hull_orig),
-                'maxX': max(x for x,_ in hull_orig),
-                'maxY': max(y for _,y in hull_orig),
+                'minX': minX,
+                'minY': minY,
+                'maxX': maxX,
+                'maxY': maxY,
             }
-            results.append({'name': f.name, 'svg': svg, 'width': w0, 'height': h0, 'hull': hull_orig, 'bbox': bbox})
+            # 生成独立 SVG（嵌入原图 dataURL，无损PNG）
+            buf = BytesIO()
+            img_full = Image.open(BytesIO(raw)).convert('RGBA')
+            img_full.save(buf, format='PNG', optimize=True)
+            data_url = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii')
+            svg_standalone = f'<svg xmlns="http://www.w3.org/2000/svg" width="{w0}" height="{h0}"><image href="{data_url}" width="{w0}" height="{h0}" preserveAspectRatio="xMidYMid meet"/></svg>'
+            results.append({
+                'name': f.name,
+                'format': 'png' if ext=='png' else ext,
+                'svg': svg,
+                'svgStandalone': svg_standalone,
+                'dataUrl': data_url,
+                'width': w0,
+                'height': h0,
+                'hull': hull_orig,
+                'bbox': bbox,
+                'log': logs,
+            })
         return Response({'results': results})
