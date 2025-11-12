@@ -72,8 +72,8 @@ const Header: React.FC = () => {
   ]
 
   return (
-    <AntHeader className="bg-white shadow-md px-4 sticky top-0 z-[1000]">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <AntHeader className="sticky top-0 z-[1000] h-16 flex items-center px-4 bg-white/30 backdrop-blur-md border-b border-white/40 shadow-md">
+      <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
         {/* Logo */}
         <div
           className="text-2xl font-bold text-blue-600 cursor-pointer"
@@ -89,6 +89,7 @@ const Header: React.FC = () => {
           items={menuItems}
           onClick={({ key }) => navigate(key)}
           className="flex-1 border-none min-w-0 hidden md:flex"
+          style={{ background: 'transparent' }}
         />
 
         {/* 右侧操作区 */}

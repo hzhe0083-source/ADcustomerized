@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50/40 to-indigo-100/40 flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Title level={2} className="text-gray-900">
@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
           </Text>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-xl bg-white/30 backdrop-blur-xl border border-white/40 rounded-2xl">
           <div className="p-6">
             <Form
               name="login"
@@ -81,13 +81,13 @@ const LoginPage: React.FC = () => {
                 />
               </Form.Item>
 
-              <Form.Item className="mb-4">
+              <Form.Item className="mb-2 mt-2">
                 <Button
                   type="primary"
                   htmlType="submit"
                   loading={loading}
                   icon={<LoginOutlined />}
-                  className="w-full rounded-lg h-12"
+                  className="w-full rounded-xl h-12"
                   size="large"
                 >
                   登录
@@ -113,12 +113,12 @@ const LoginPage: React.FC = () => {
           </Text>
           <Row gutter={16} justify="center">
             <Col>
-              <Button type="default" size="large" className="rounded-lg">
+              <Button type="default" size="large" className="rounded-xl bg-white/40 backdrop-blur-lg border-white/30">
                 微信登录
               </Button>
             </Col>
             <Col>
-              <Button type="default" size="large" className="rounded-lg">
+              <Button type="default" size="large" className="rounded-xl bg-white/40 backdrop-blur-lg border-white/30">
                 支付宝登录
               </Button>
             </Col>
@@ -126,7 +126,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* 底部链接 */}
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-gray-600">
           <Link to="/forgot-password" className="hover:text-gray-700">
             忘记密码？
           </Link>

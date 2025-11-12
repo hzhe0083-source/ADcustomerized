@@ -16,47 +16,8 @@ export default function EmployeePage() {
   const [searchText, setSearchText] = useState('')
   const [form] = Form.useForm()
 
-  // 模拟数据
   useEffect(() => {
-    const mockEmployees: Employee[] = [
-      {
-        id: '1',
-        name: '王经理',
-        employeeCode: 'EMP001',
-        department: '生产部',
-        position: '生产经理',
-        phone: '13800138001',
-        email: 'wang@example.com',
-        hireDate: '2020-01-15',
-        status: 'active',
-        salary: 15000,
-        emergencyContact: '张紧急联系人',
-        emergencyPhone: '13900139001',
-        address: '北京市朝阳区',
-        createdAt: '2020-01-15',
-        updatedAt: '2024-01-01',
-        notes: '工作认真负责'
-      },
-      {
-        id: '2',
-        name: '李操作员',
-        employeeCode: 'EMP002',
-        department: '印刷部',
-        position: '印刷操作员',
-        phone: '13800138002',
-        email: 'li@example.com',
-        hireDate: '2021-03-20',
-        status: 'active',
-        salary: 8000,
-        emergencyContact: '赵紧急联系人',
-        emergencyPhone: '13900139002',
-        address: '上海市浦东新区',
-        createdAt: '2021-03-20',
-        updatedAt: '2024-01-01',
-        notes: '技术熟练'
-      }
-    ]
-    setEmployees(mockEmployees)
+    setEmployees([])
   }, [])
 
   const handleAdd = () => {

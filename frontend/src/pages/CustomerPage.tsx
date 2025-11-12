@@ -15,39 +15,8 @@ export default function CustomerPage() {
   const [searchText, setSearchText] = useState('')
   const [form] = Form.useForm()
 
-  // 模拟数据
   useEffect(() => {
-    const mockCustomers: Customer[] = [
-      {
-        id: '1',
-        name: '张三',
-        company: '张三广告公司',
-        phone: '13800138000',
-        email: 'zhangsan@example.com',
-        address: '北京市朝阳区',
-        type: 'company',
-        status: 'active',
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-01',
-        creditLimit: 50000,
-        paymentTerms: '30天账期'
-      },
-      {
-        id: '2',
-        name: '李四',
-        company: '李四设计工作室',
-        phone: '13900139000',
-        email: 'lisi@example.com',
-        address: '上海市浦东新区',
-        type: 'individual',
-        status: 'active',
-        createdAt: '2024-01-15',
-        updatedAt: '2024-01-15',
-        creditLimit: 20000,
-        paymentTerms: '现金支付'
-      }
-    ]
-    setCustomers(mockCustomers)
+    setCustomers([])
   }, [])
 
   const handleAdd = () => {

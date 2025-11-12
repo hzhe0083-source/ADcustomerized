@@ -1,0 +1,13 @@
+:root{
+  --glass-bg: rgba(255,255,255,0.35);
+  --glass-border: rgba(255,255,255,0.45);
+}
+body{margin:0;font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";background:#f6f8fb;color:#0f172a}
+.glass{background:var(--glass-bg);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);border:1px solid var(--glass-border);box-shadow:0 10px 30px rgba(2,8,23,.1)}
+.container{max-width:1120px;margin:0 auto;padding:0 16px}
+.row{display:flex;gap:16px}
+.spacer{height:24px}
+button.primary{background:#2563eb;color:#fff;border:none;border-radius:10px;height:44px;padding:0 16px;cursor:pointer}
+button.ghost{background:transparent;color:#2563eb;border:1px solid #93c5fd;border-radius:10px;height:44px;padding:0 16px;cursor:pointer}
+a{color:#2563eb;text-decoration:none}
+
