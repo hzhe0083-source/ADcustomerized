@@ -154,7 +154,13 @@ function onUp(){ picked.value=null }
 function exportSVG(){
   const header = `<svg xmlns="http://www.w3.org/2000/svg" width="${sheet.width}" height="${sheet.height}">`
   const bg = `<rect x="0" y="0" width="${sheet.width}" height="${sheet.height}" fill="#fff" stroke="#e2e8f0"/>`
-  const body = placements.value.map((p:any, idx:number)=>`<g transform="translate(${p.x},${p.y})"><rect x="0" y="0" width="${p.w}" height="${p.h}" fill="#dbeafe" stroke="#60a5fa"/><text x="4" y="12" font-size="12" fill="#334155">${p.id||('P'+idx)}</text></g>`).join('')
+  const body = placements.value.map((p:any, idx:number)=>{
+    const it = itemMap.value[p.id]
+    if (it && it.thumb){
+      return `<g transform="translate(${p.x},${p.y})"><image href="${it.thumb}" x="0" y="0" width="${p.w}" height="${p.h}" preserveAspectRatio="xMidYMid meet"/><rect x="0" y="0" width="${p.w}" height="${p.h}" fill="none" stroke="#60a5fa"/><text x="4" y="12" font-size="12" fill="#334155">${p.id||('P'+idx)}</text></g>`
+    }
+    return `<g transform="translate(${p.x},${p.y})"><rect x="0" y="0" width="${p.w}" height="${p.h}" fill="#dbeafe" stroke="#60a5fa"/><text x="4" y="12" font-size="12" fill="#334155">${p.id||('P'+idx)}</text></g>`
+  }).join('')
   const svg = header + bg + body + `</svg>`
   const blob = new Blob([svg], { type: 'image/svg+xml' })
   const url = URL.createObjectURL(blob)
