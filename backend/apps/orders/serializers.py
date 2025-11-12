@@ -68,7 +68,7 @@ class CreateOrderItemInput(serializers.Serializer):
     productId = serializers.UUIDField()
     productName = serializers.CharField(required=False)
     quantity = serializers.FloatField()
-    price = serializers.FloatField()
+    price = serializers.FloatField(required=False, default=0)
     configs = serializers.DictField(child=serializers.JSONField(), required=False)
 
 

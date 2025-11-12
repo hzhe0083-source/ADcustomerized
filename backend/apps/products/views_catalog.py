@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions
+from rest_framework.exceptions import PermissionDenied
 from .models_catalog import CatalogCategory, CatalogAttribute, CatalogOption
 from .serializers_catalog import CatalogCategorySerializer, CatalogAttributeSerializer, CatalogOptionSerializer
 from apps.users.models import Merchant, MerchantMembership
@@ -29,12 +30,12 @@ class CatalogCategoryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         ms = MerchantMembership.objects.filter(user=self.request.user).first()
         if not ms:
-            raise PermissionError('未绑定商户')
+            raise PermissionDenied('未绑定商户')
         # 订阅有效性（写操作需有效）
         from apps.users.models import MerchantSubscription
         sub = MerchantSubscription.objects.filter(merchant=ms.merchant).order_by('-end_date').first()
         if not sub or not sub.is_active:
-            raise PermissionError('商户订阅已到期或未开通')
+            raise PermissionDenied('商户订阅已到期或未开通')
         serializer.save(merchant=ms.merchant)
 
 

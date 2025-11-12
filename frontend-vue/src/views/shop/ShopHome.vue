@@ -7,7 +7,7 @@
         <div style="font-weight:700;margin-bottom:8px">{{ merchant?.name || '全部分类' }}</div>
         <div>
           <a href="#" :class="{active: !category}" @click.prevent="select('')" style="display:block;padding:8px 10px;border-radius:8px">全部</a>
-          <a v-for="c in catalog" :key="c.id" href="#" @click.prevent="select(c.slug)" :class="{active: category===c.slug}" style="display:block;padding:8px 10px;border-radius:8px">
+          <a v-for="(c,i) in safeCatalog" :key="c?.id || i" href="#" @click.prevent="select(c.slug)" :class="{active: category===c.slug}" style="display:block;padding:8px 10px;border-radius:8px">
             {{ c.name }}
           </a>
         </div>
@@ -30,7 +30,7 @@
           <div class="spacer"></div>
           <div v-if="loading" style="color:#64748b">加载中...</div>
           <div v-else class="row" style="flex-wrap:wrap">
-            <div v-for="p in products" :key="p.id" class="glass" style="width:260px;padding:12px;border-radius:12px">
+            <div v-for="(p,i) in safeProducts" :key="p?.id || i" class="glass" style="width:260px;padding:12px;border-radius:12px">
               <div style="height:140px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8">{{ (p.images && p.images.length)? '图片' : '无图' }}</div>
               <div style="height:8px"></div>
               <div style="font-weight:600">{{ p.name }}</div>
@@ -38,7 +38,7 @@
               <div style="height:8px"></div>
               <button class="primary" @click="goProduct(p.id)">去下单</button>
             </div>
-            <div v-if="products.length===0" style="color:#94a3b8">暂无产品</div>
+            <div v-if="safeProducts.length===0" style="color:#94a3b8">暂无产品</div>
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api, { getProducts, getMerchantPublic } from '../../services/api'
 
@@ -59,6 +59,13 @@ const loading = ref(false)
 const route = useRoute()
 const router = useRouter()
 const merchant = ref<any | null>(null)
+
+const safeCatalog = computed(()=> {
+  const raw:any = catalog.value
+  const arr = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.results) ? raw.results : [])
+  return arr.filter(Boolean)
+})
+const safeProducts = computed(()=> (products.value || []).filter(Boolean))
 
 async function load(page = 1){
   loading.value = true

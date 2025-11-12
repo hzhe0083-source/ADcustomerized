@@ -3,105 +3,86 @@
     <div class="glass" style="padding:16px;border-radius:12px;margin-top:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div>
-          <h2 style="margin:0 0 4px 0">商城下单</h2>
-          <p style="margin:0;color:#64748b">上传文件，选择材质/尺寸，实时计算价格并下单</p>
+          <h2 style="margin:0 0 4px 0">商品管理</h2>
+          <p style="margin:0;color:#64748b">创建商品，配置“材质/尺寸/工艺”等选项</p>
         </div>
         <div style="display:flex;gap:8px">
-          <select v-model="filters.category" style="height:36px;border-radius:10px;border:1px solid #cbd5e1;padding:0 10px">
-            <option value="">全部分类</option>
-            <option v-for="c in catalog" :key="c.id" :value="c.slug">{{ c.name }}</option>
+          <input v-model="form.name" placeholder="商品名称" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
+          <select v-model="form.category" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px">
+            <option value="uv_roll">UV卷材</option>
+            <option value="banner">喷绘布</option>
+            <option value="car_sticker">车贴</option>
+            <option value="lightbox">灯箱片</option>
+            <option value="kt_board">KT板</option>
+            <option value="pvc_board">PVC板</option>
           </select>
-          <input v-model="filters.search" placeholder="搜索产品" style="height:36px;border-radius:10px;border:1px solid #cbd5e1;padding:0 10px;min-width:220px" @keyup.enter="load(1)"/>
-          <button class="primary" @click="load(1)">查询</button>
+          <div style="display:inline-flex;align-items:center;border:1px solid #cbd5e1;border-radius:10px;height:36px;padding:0 10px">
+            <span style="color:#64748b;margin-right:4px">¥</span>
+            <input v-model="form.base_price" type="number" min="0" step="0.01" placeholder="基础价（必填）" style="border:none;outline:none;width:120px;height:100%;padding:0 4px"/>
+            <span style="color:#64748b;margin-left:4px">/㎡</span>
+          </div>
+          <button class="primary" @click="createProduct">新增商品</button>
         </div>
       </div>
 
       <div class="spacer"></div>
 
-      <div v-if="loading" style="color:#64748b">加载中...</div>
-      <div v-else>
-        <div class="row" style="flex-wrap:wrap">
-          <div v-for="p in products" :key="p.id" class="glass" style="width:260px;padding:12px;border-radius:12px">
-            <div style="height:140px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8">
-              <span>{{ (p.images && p.images.length)? '图片' : '无图' }}</span>
+      <div class="row" style="align-items:flex-start">
+        <!-- 左侧：商品列表 -->
+        <div class="glass" style="flex:1;min-width:280px;padding:12px;border-radius:12px">
+          <div style="font-weight:600;margin-bottom:8px">商品列表</div>
+          <div v-for="p in products" :key="p.id" @click="select(p)" :style="{padding:'8px 10px',border:'1px solid #e2e8f0',borderRadius:'8px',marginBottom:'8px',cursor:'pointer',background: current?.id===p.id?'#eef2ff':'transparent'}">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <div>{{ p.name }}</div>
+              <a href="#" @click.prevent="removeProduct(p.id)" style="color:#ef4444">删除</a>
             </div>
-            <div style="height:8px"></div>
-            <div style="font-weight:600">{{ p.name }}</div>
-            <div style="color:#64748b;font-size:12px">基础价：¥{{ Number(p.base_price).toFixed(2) }}/{{ p.unit }}</div>
-            <div style="height:8px"></div>
-            <button class="primary" @click="openOrder(p)">立即下单</button>
+            <div style="color:#64748b;font-size:12px">¥{{ Number(p.base_price).toFixed(2) }}/{{ p.unit }}</div>
           </div>
-          <div v-if="products.length===0" style="color:#94a3b8">暂无产品</div>
+          <div v-if="products.length===0" style="color:#94a3b8">暂无商品</div>
         </div>
-      </div>
-    </div>
 
-    <!-- 下单抽屉 -->
-    <div v-if="orderVisible" style="position:fixed;inset:0;background:rgba(15,23,42,0.35)">
-      <div class="glass" style="position:absolute;right:0;top:0;height:100%;width:520px;padding:16px 16px 24px 16px;border-left:1px solid #e2e8f0;overflow:auto">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <h3 style="margin:0">下单：{{ current?.name }}</h3>
-          <button class="ghost" @click="orderVisible=false">关闭</button>
-        </div>
-        <div class="spacer"></div>
-
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <!-- 上传文件 -->
-          <div>
-            <div style="font-weight:600;margin-bottom:6px">打印文件</div>
-            <input type="file" @change="onPickFile"/>
-            <div v-if="files.length" style="font-size:12px;color:#64748b;margin-top:4px">已选择 {{ files.length }} 个文件</div>
-          </div>
-
-          <!-- 尺寸与数量 -->
-          <div>
-            <div style="font-weight:600;margin-bottom:6px">尺寸与数量</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input v-model.number="form.width" type="number" placeholder="长" style="width:120px;height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <input v-model.number="form.height" type="number" placeholder="宽" style="width:120px;height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <select v-model="form.unit" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px">
-                <option value="cm">cm</option>
-                <option value="mm">mm</option>
-                <option value="m">m</option>
+        <!-- 右侧：配置管理 -->
+        <div class="glass" style="flex:2;min-width:320px;padding:12px;border-radius:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div style="font-weight:600">配置（{{ current?.name || '未选择商品' }}）</div>
+            <div v-if="current" style="display:flex;gap:8px">
+              <select v-model="cfgForm.config_type" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px">
+                <option value="size">尺寸</option>
+                <option value="material">材料</option>
+                <option value="process">工艺</option>
+                <option value="color">颜色</option>
+                <option value="finish">后处理</option>
               </select>
-              <input v-model.number="form.quantity" type="number" min="1" placeholder="数量" style="width:120px;height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <button class="ghost" @click="doQuote">计算价格</button>
+              <input v-model="cfgForm.config_name" placeholder="配置名称，如 材质/工艺" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
+              <button class="primary" @click="createConfig">添加配置</button>
             </div>
           </div>
 
-          <!-- 动态配置 -->
-          <div v-for="cfg in (current?.configs||[])" :key="cfg.id">
-            <div style="font-weight:600;margin-bottom:6px">{{ cfg.config_name }}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <label v-for="opt in cfg.options" :key="opt.id" style="border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;cursor:pointer">
-                <input type="radio" :name="'cfg-'+cfg.id" :value="opt.id" v-model="selectedOptions[cfg.id]" style="margin-right:6px"/>
-                {{ opt.name }} <span v-if="Number(opt.price_adjustment)">(+¥{{ Number(opt.price_adjustment).toFixed(2) }})</span>
-              </label>
+          <div class="spacer"></div>
+          <div v-if="current">
+            <div v-for="c in configs" :key="c.id" class="glass" style="padding:10px;border-radius:10px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <div><strong>{{ c.config_name }}</strong> <span style="color:#94a3b8">({{ c.config_type }})</span></div>
+                <a href="#" @click.prevent="removeConfig(c.id)" style="color:#ef4444">删除配置</a>
+              </div>
+              <div style="margin-top:8px">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" v-if="initOpt(c.id)">
+                  <input v-model="optForm[c.id].name" placeholder="选项名，如 2mm/3.2米宽膜" style="height:32px;border:1px solid #cbd5e1;border-radius:8px;padding:0 8px"/>
+                  <input v-model.number="optForm[c.id].price_adjustment" type="number" step="0.01" placeholder="加价" style="height:32px;border:1px solid #cbd5e1;border-radius:8px;padding:0 8px;width:120px"/>
+                  <button class="ghost" @click="createOption(c.id)">添加选项</button>
+                </div>
+                <div style="height:8px"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <span v-for="o in c.options||[]" :key="o.id" style="border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;display:inline-flex;gap:6px;align-items:center">
+                    {{ o.name }}<span v-if="o.price_adjustment">(+¥{{ Number(o.price_adjustment).toFixed(2) }})</span>
+                    <a href="#" @click.prevent="removeOption(o.id)" style="color:#ef4444">删除</a>
+                  </span>
+                </div>
+              </div>
             </div>
+            <div v-if="!configs.length" style="color:#94a3b8">该商品暂无配置</div>
           </div>
-
-          <!-- 价格结果 -->
-          <div class="glass" v-if="quote" style="padding:12px;border-radius:10px">
-            <div>面积：{{ quote.area }} m²</div>
-            <div>单件价：¥{{ quote.unitPrice.toFixed(2) }}</div>
-            <div>数量：{{ quote.quantity }}</div>
-            <div style="font-weight:600">小计：¥{{ quote.subtotal.toFixed(2) }}</div>
-          </div>
-
-          <!-- 收货信息并下单 -->
-          <div>
-            <div style="font-weight:600;margin-bottom:6px">收货信息</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input v-model="ship.customerName" placeholder="姓名" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <input v-model="ship.phone" placeholder="电话" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <input v-model="ship.email" placeholder="邮箱" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <input v-model="ship.address" placeholder="地址" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px;min-width:260px"/>
-              <input v-model="ship.deliveryMethod" placeholder="配送方式" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-              <input v-model="ship.deliveryDate" placeholder="配送日期" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px"/>
-            </div>
-            <div style="height:8px"></div>
-            <button class="primary" @click="submitOrder" :disabled="!quote">提交下单</button>
-          </div>
+          <div v-else style="color:#94a3b8">请选择左侧商品后再进行配置管理</div>
         </div>
       </div>
     </div>
@@ -110,99 +91,71 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { getProducts, quotePrice, uploadFile, createOrder } from '../services/api'
+import { listMerchantProducts, createMerchantProduct, deleteMerchantProduct, listProductConfigs, createProductConfig, deleteProductConfig, createConfigOption, deleteConfigOption } from '../services/api'
 
-const loading = ref(false)
 const products = ref<any[]>([])
-const filters = reactive({ category: '', search: '' })
-const pagination = reactive({ page: 1, pageSize: 12, total: 0 })
-const catalog = ref<any[]>([])
-
-async function load(page?: number){
-  if (page) pagination.page = page
-  loading.value = true
-  try{
-    const res = await getProducts({ category: filters.category || undefined, search: filters.search || undefined, page: pagination.page, pageSize: pagination.pageSize })
-    if (res?.results){
-      products.value = res.results
-      pagination.total = res.count || res.results.length
-    }else if(Array.isArray(res)){
-      products.value = res
-      pagination.total = res.length
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(async ()=>{ catalog.value = await api.get('/catalog/categories/'); load(1) })
-
-const orderVisible = ref(false)
 const current = ref<any | null>(null)
-const files = ref<File[]>([])
-const uploadedUrls = ref<string[]>([])
-const form = reactive({ width: 100, height: 100, unit: 'cm', quantity: 1 })
-const selectedOptions = reactive<Record<string, number | undefined>>({})
-const quote = ref<any | null>(null)
+const configs = ref<any[]>([])
+const optForm = reactive<Record<string, any>>({})
 
-function openOrder(p: any){
+const form = reactive({ name: '', category: 'uv_roll', base_price: '', unit: '平方米', is_active: true })
+const cfgForm = reactive({ config_type: 'material', config_name: '' })
+
+async function load(){
+  const res = await listMerchantProducts()
+  products.value = res?.results || res || []
+}
+
+async function select(p: any){
   current.value = p
-  files.value = []
-  uploadedUrls.value = []
-  quote.value = null
-  Object.keys(selectedOptions).forEach(k=> delete selectedOptions[k])
-  orderVisible.value = true
+  const res = await listProductConfigs({ product: p.id })
+  configs.value = res?.results || res || []
 }
 
-function onPickFile(e: Event){
-  const input = e.target as HTMLInputElement
-  if (input.files && input.files.length){
-    files.value = Array.from(input.files)
-  }
+async function createProduct(){
+  if (!form.name) return
+  await createMerchantProduct({ ...form, base_price: Number(form.base_price||0), images: [] })
+  form.name=''; form.base_price=''
+  await load()
 }
 
-async function ensureUpload(){
-  if (!files.value.length) return [] as string[]
-  const urls: string[] = []
-  for (const f of files.value){
-    const res = await uploadFile(f, 'orders')
-    urls.push(res.url)
-  }
-  uploadedUrls.value = urls
-  return urls
+async function removeProduct(id: string){
+  await deleteMerchantProduct(id)
+  if (current.value?.id===id){ current.value=null; configs.value=[] }
+  await load()
 }
 
-async function doQuote(){
-  const optPairs = Object.entries(selectedOptions)
-    .filter(([,v])=>!!v)
-    .map(([cfgId, optId])=>({ configId: cfgId as any, optionId: Number(optId) }))
-  const res = await quotePrice({ productId: current.value.id, width: form.width, height: form.height, unit: form.unit, quantity: form.quantity, options: optPairs })
-  quote.value = res
+async function createConfig(){
+  if (!current.value || !cfgForm.config_name) return
+  await createProductConfig({ ...cfgForm, product: current.value.id, is_required: true, display_order: 0 })
+  cfgForm.config_name=''
+  await select(current.value)
 }
 
-async function submitOrder(){
-  const fileUrls = await ensureUpload()
-  if (!quote.value) await doQuote()
-  const item = {
-    productId: current.value.id,
-    quantity: form.quantity,
-    price: quote.value?.unitPrice || 0,
-    configs: {
-      width: form.width,
-      height: form.height,
-      unit: form.unit,
-      options: selectedOptions,
-      files: fileUrls,
-      quote: quote.value,
-    }
-  }
-  const payload = { ...ship, notes: '', items: [item], totalAmount: quote.value?.subtotal || 0 }
-  const res = await createOrder(payload)
-  alert('下单成功，订单号：' + (res.orderNumber || res.id))
-  orderVisible.value = false
+async function removeConfig(id: string){
+  await deleteProductConfig(id)
+  await select(current.value)
 }
 
-const ship = reactive({ customerName: '', phone: '', email: '', address: '', deliveryMethod: '快递', deliveryDate: '' })
+async function createOption(cfgId: string){
+  const f = optForm[cfgId] || {}
+  if (!f.name) return
+  await createConfigOption({ config: cfgId, name: f.name, price_adjustment: Number(f.price_adjustment||0), is_default: false, display_order: 0 })
+  optForm[cfgId] = { name: '', price_adjustment: 0 }
+  await select(current.value)
+}
+
+async function removeOption(id: string){
+  await deleteConfigOption(id)
+  await select(current.value)
+}
+
+onMounted(load)
+
+function initOpt(id: string){
+  if (!optForm[id]) optForm[id] = { name: '', price_adjustment: 0 }
+  return true
+}
 </script>
 
 <style scoped></style>

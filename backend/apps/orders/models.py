@@ -87,6 +87,7 @@ class OrderStatusHistory(models.Model):
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
+    merchant = models.ForeignKey('users.Merchant', on_delete=models.SET_NULL, null=True, blank=True, related_name='carts')
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
     
@@ -111,7 +112,6 @@ class CartItem(models.Model):
         db_table = 'cart_items'
         verbose_name = '购物车项'
         verbose_name_plural = '购物车项'
-        unique_together = ['cart', 'product']
     
     def __str__(self):
         return f"{self.cart.user.username} - {self.product.name}"

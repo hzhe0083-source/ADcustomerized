@@ -15,6 +15,7 @@
         <a :class="{active: $route.path.startsWith('/products') }" href="#" @click.prevent="$router.push('/products')">产品</a>
         <a :class="{active: $route.path.startsWith('/catalog') }" href="#" @click.prevent="$router.push('/catalog')">品类管理</a>
         <a :class="{active: $route.path.startsWith('/membership') }" href="#" @click.prevent="$router.push('/membership')">会员订阅</a>
+        <a :class="{active: $route.path.startsWith('/nesting') }" href="#" @click.prevent="$router.push('/nesting')">拼版</a>
       </nav>
       <div class="spacer"></div>
       <div style="font-size:12px;color:#64748b">Ryan</div>

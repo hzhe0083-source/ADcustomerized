@@ -58,7 +58,10 @@
               <input v-model="ship.address" placeholder="地址" style="height:36px;border:1px solid #cbd5e1;border-radius:10px;padding:0 10px;min-width:260px"/>
             </div>
             <div style="height:8px"></div>
-            <button class="primary" @click="submit" :disabled="!result">提交下单</button>
+            <div style="display:flex;gap:8px">
+              <button class="primary" @click="submit" :disabled="!result">立即下单</button>
+              <button class="ghost" @click="addToCart">加入购物车</button>
+            </div>
           </div>
         </div>
       </div>
@@ -69,7 +72,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getProductById, quotePrice, uploadFile, createOrder, getMerchantPublic } from '../../services/api'
+import { getProductById, quotePrice, uploadFile, createOrder, getMerchantPublic, addCartItem } from '../../services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -125,6 +128,13 @@ async function submit(){
   alert('下单成功，订单号：' + (res.orderNumber || res.id))
   if (merchant) router.replace(`/s/${merchant}/success/${res.id}`)
   else router.replace(`/shop/success/${res.id}`)
+}
+
+async function addToCart(){
+  const merchant = (route.params.merchant as string) || ''
+  await addCartItem({ merchant: merchant || undefined, productId: product.value.id, quantity: form.quantity, configs: { width: form.width, height: form.height, unit: form.unit, options: selected } })
+  if (merchant) router.push(`/s/${merchant}/cart`)
+  else router.push('/shop/cart')
 }
 </script>
 

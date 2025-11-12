@@ -138,3 +138,72 @@ class EmployeeProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username} 的员工资料"
+
+
+class AttendanceRecord(models.Model):
+    STATUS_CHOICES = [
+        ('present', '出勤'),
+        ('late', '迟到'),
+        ('absent', '缺勤'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='attendance_records')
+    date = models.DateField('日期')
+    check_in_time = models.DateTimeField('签到时间', null=True, blank=True)
+    check_out_time = models.DateTimeField('签退时间', null=True, blank=True)
+    status = models.CharField('状态', max_length=20, choices=STATUS_CHOICES, default='present')
+    notes = models.CharField('备注', max_length=255, blank=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+
+    class Meta:
+        db_table = 'attendance_records'
+        verbose_name = '考勤记录'
+        verbose_name_plural = '考勤记录'
+        indexes = [
+            models.Index(fields=['user', 'date'])
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} {self.date}"
+
+
+class WorkTask(models.Model):
+    STATUS_CHOICES = [
+        ('pending', '待开始'),
+        ('in_progress', '进行中'),
+        ('done', '已完成'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='work_tasks')
+    title = models.CharField('任务标题', max_length=255)
+    status = models.CharField('状态', max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        db_table = 'work_tasks'
+        verbose_name = '工作任务'
+        verbose_name_plural = '工作任务'
+
+
+class WorkLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='work_logs')
+    task = models.ForeignKey(WorkTask, on_delete=models.SET_NULL, null=True, blank=True, related_name='logs')
+    date = models.DateField('日期', auto_now_add=True)
+    start_time = models.DateTimeField('开始时间', null=True, blank=True)
+    end_time = models.DateTimeField('结束时间', null=True, blank=True)
+    seconds = models.IntegerField('耗时(秒)', default=0)
+    notes = models.TextField('备注/记事', blank=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+
+    class Meta:
+        db_table = 'work_logs'
+        verbose_name = '工作日志'
+        verbose_name_plural = '工作日志'
+        indexes = [
+            models.Index(fields=['user', 'date'])
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} {self.date} {self.seconds}s"

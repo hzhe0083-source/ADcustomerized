@@ -89,14 +89,19 @@ const attrForm = reactive({ name: '', input_type: 'select' })
 const optForm = reactive<Record<string, any>>({})
 
 async function loadCategories(){
-  categories.value = await api.get('/catalog/categories/')
+  const res = await api.get('/catalog/categories/')
+  categories.value = (res && res.results) ? res.results : (Array.isArray(res) ? res : [])
 }
 
 async function createCategory(){
   if (!catForm.name || !catForm.slug) return
-  await api.post('/catalog/categories/', { name: catForm.name, slug: catForm.slug, sort_order: 0, is_active: true })
-  catForm.name = ''; catForm.slug='';
-  await loadCategories()
+  try{
+    await api.post('/catalog/categories/', { name: catForm.name, slug: catForm.slug, sort_order: 0, is_active: true })
+    catForm.name = ''; catForm.slug='';
+    await loadCategories()
+  }catch(e:any){
+    alert((e?.response?.data?.detail) || '添加失败，请确认已绑定商户并开通订阅（可在“会员订阅”一键创建商户并试用）')
+  }
 }
 
 async function removeCategory(id: string){
@@ -112,10 +117,11 @@ function selectCategory(c: any){
 
 async function loadAttributes(){
   if (!selected.value) return
-  attributes.value = await api.get('/catalog/attributes/', { params: { category: selected.value.id } } as any).catch(async () => {
+  const res = await api.get('/catalog/attributes/', { params: { category: selected.value.id } } as any).catch(async () => {
     const all = await api.get('/catalog/attributes/')
-    return all.filter((x:any)=>x.category===selected.value.id)
+    return (all && all.results) ? all.results : all
   })
+  attributes.value = (res && res.results) ? res.results : (Array.isArray(res) ? res.filter((x:any)=>x && (x.category===selected.value.id || x.category_id===selected.value.id)) : [])
 }
 
 async function createAttribute(){

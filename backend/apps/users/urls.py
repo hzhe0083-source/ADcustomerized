@@ -2,6 +2,8 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import RegisterAPIView, LoginAPIView, MeAPIView
 from .views_merchants import MerchantMeView, MerchantPlanViewSet, MerchantSubscribeView, MerchantBootstrapView, MerchantPublicView
+from .views_attendance import AttendanceViewSet
+from .views_work import WorkTaskViewSet, WorkLogViewSet
 
 urlpatterns = [
     path('register', RegisterAPIView.as_view(), name='auth-register'),
@@ -15,5 +17,8 @@ urlpatterns = [
 
 router = DefaultRouter()
 router.register(r'merchant/plans', MerchantPlanViewSet, basename='merchant-plan')
+router.register(r'attendance', AttendanceViewSet, basename='attendance')
+router.register(r'tasks', WorkTaskViewSet, basename='work-task')
+router.register(r'worklogs', WorkLogViewSet, basename='work-log')
 
 urlpatterns += router.urls

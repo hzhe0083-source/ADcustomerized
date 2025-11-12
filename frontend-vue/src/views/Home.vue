@@ -32,12 +32,13 @@
     <div class="glass" style="padding:16px;border-radius:12px">
       <h3 style="margin:0 0 8px 0">近14日订单/营收</h3>
       <div v-if="daily.length===0" style="color:#94a3b8">暂无数据</div>
-      <div v-else style="display:flex;gap:8px;align-items:flex-end;height:120px">
-        <div v-for="d in daily" :key="d.date" style="flex:1;display:flex;flex-direction:column;align-items:center">
-          <div :title="'¥'+d.revenue.toFixed(2)" :style="{background:'#93c5fd',height: Math.max(4, d.revenue/maxRevenue*100)+'px', width:'18px', borderRadius:'6px'}"></div>
-          <div style="height:4px"></div>
-          <div :title="d.orders+'单'" :style="{background:'#60a5fa',height: Math.max(4, d.orders/maxOrders*100)+'px', width:'18px', borderRadius:'6px'}"></div>
-          <div style="margin-top:6px;font-size:10px;color:#94a3b8">{{ d.date.slice(5) }}</div>
+      <div v-else style="height:100px">
+        <svg viewBox="0 0 100 60" preserveAspectRatio="none" style="width:100%;height:100%">
+          <polyline :points="revPoints" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+          <polyline :points="ordPoints" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;color:#94a3b8;font-size:9px">
+          <span v-for="d in daily" :key="d.date">{{ d.date.slice(5) }}</span>
         </div>
       </div>
     </div>
@@ -69,6 +70,28 @@ const forecast = ref<any[]>([])
 
 const maxRevenue = computed(()=> Math.max(1, ...daily.value.map(d=>d.revenue)))
 const maxOrders = computed(()=> Math.max(1, ...daily.value.map(d=>d.orders)))
+
+const revPoints = computed(()=>{
+  const n = daily.value.length || 1
+  const pad = 5
+  const h = 60 - pad*2
+  return daily.value.map((d, i)=>{
+    const x = n===1 ? 0 : i/(n-1)*100
+    const y = 60 - pad - (d.revenue/maxRevenue.value)*h
+    return `${x.toFixed(2)},${y.toFixed(2)}`
+  }).join(' ')
+})
+
+const ordPoints = computed(()=>{
+  const n = daily.value.length || 1
+  const pad = 5
+  const h = 60 - pad*2
+  return daily.value.map((d, i)=>{
+    const x = n===1 ? 0 : i/(n-1)*100
+    const y = 60 - pad - (d.orders/maxOrders.value)*h
+    return `${x.toFixed(2)},${y.toFixed(2)}`
+  }).join(' ')
+})
 
 const auth = useAuthStore()
 
