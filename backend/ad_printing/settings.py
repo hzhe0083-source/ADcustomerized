@@ -27,9 +27,12 @@ INSTALLED_APPS = [
     'channels',
     
     # Local apps
+    'apps.analytics',
     'apps.users',
     'apps.products',
     'apps.orders',
+    'apps.equipment',
+    'apps.production',
 ]
 
 MIDDLEWARE = [

@@ -14,13 +14,20 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     creditLimit = serializers.DecimalField(source="credit_limit", max_digits=10, decimal_places=2)
     usedCredit = serializers.DecimalField(source="used_credit", max_digits=10, decimal_places=2)
     shippingAddresses = serializers.JSONField(source="shipping_addresses")
+    merchant = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomerProfile
         fields = (
-            "id", "user", "user_id", "contact_person", "contact_phone",
+            "id", "user", "user_id", "merchant", "contact_person", "contact_phone",
             "shippingAddresses", "creditLimit", "usedCredit",
         )
+
+    def get_merchant(self, obj):
+        m = getattr(obj, 'merchant', None)
+        if not m:
+            return None
+        return { 'id': str(m.id), 'name': m.name, 'slug': m.slug }
 
 
 class EmployeeProfileSerializer(serializers.ModelSerializer):
@@ -36,4 +43,3 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
             "id", "user", "user_id", "employeeId", "department", "position",
             "hireDate", "isActive",
         )
-

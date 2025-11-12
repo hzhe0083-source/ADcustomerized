@@ -6,6 +6,7 @@ from django.utils.dateparse import parse_date
 from django.db.models import Q
 
 from .models import Order
+from apps.users.models import MerchantMembership
 from .serializers import OrderSerializer, CreateOrderSerializer, OrderStatusUpdateSerializer
 
 
@@ -24,13 +25,16 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
+        ms = MerchantMembership.objects.filter(user=user).first()
+        if ms and not user.is_superuser:
+            qs = qs.filter(merchant=ms.merchant)
         user_id = self.request.query_params.get('userId')
         status_filter = self.request.query_params.get('status')
         start_date = self.request.query_params.get('startDate')
         end_date = self.request.query_params.get('endDate')
         search_text = self.request.query_params.get('searchText')
 
-        if not user.is_staff:
+        if not user.is_staff and not user.is_superuser:
             qs = qs.filter(user=user)
         elif user_id:
             qs = qs.filter(user__id=user_id)
@@ -63,4 +67,3 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.status = new_status
             order.save()
         return Response(OrderSerializer(order).data)
-

@@ -28,23 +28,26 @@ const email = ref('')
 const password = ref('')
 
 async function onSubmit(){
+  if ((password.value || '').length < 6){
+    alert('密码至少 6 位')
+    return
+  }
   try{
-    const payload: any = { username: username.value, password: password.value }
-    if (email.value) payload.email = email.value
+    const payload: any = { username: username.value.trim(), password: password.value }
+    if (email.value) payload.email = email.value.trim()
     const res = await register(payload)
-    // 注册成功后直接写入并跳转
     if (res?.access || res?.token){
       localStorage.setItem('token', res.access || res.token)
       localStorage.setItem('user', JSON.stringify(res.user))
-      router.push('/')
+      router.replace('/orders')
     } else {
       router.push('/login')
     }
-  }catch(e){
-    alert('注册失败')
+  }catch(e: any){
+    const msg = e?.response?.data ? JSON.stringify(e.response.data) : (e?.message || '注册失败')
+    alert(msg)
   }
 }
 </script>
 
 <style scoped></style>
-

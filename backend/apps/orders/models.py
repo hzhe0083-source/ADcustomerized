@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from apps.users.models import Merchant
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -14,6 +15,7 @@ class Order(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     order_number = models.CharField('订单号', max_length=50, unique=True)
     status = models.CharField('订单状态', max_length=20, choices=STATUS_CHOICES, default='pending')

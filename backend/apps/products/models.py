@@ -1,4 +1,5 @@
 from django.db import models
+from apps.users.models import Merchant
 import uuid
 
 class Product(models.Model):
@@ -12,6 +13,7 @@ class Product(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     name = models.CharField('产品名称', max_length=255)
     category = models.CharField('产品分类', max_length=50, choices=CATEGORY_CHOICES)
     description = models.TextField('产品描述', blank=True)
@@ -27,6 +29,7 @@ class Product(models.Model):
         verbose_name = '产品'
         verbose_name_plural = '产品'
         indexes = [
+            models.Index(fields=['merchant']),
             models.Index(fields=['category']),
             models.Index(fields=['is_active']),
         ]
