@@ -28,17 +28,18 @@
 import { ref } from 'vue'
 import api, { login } from '../services/api'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const username = ref('')
 const password = ref('')
+const auth = useAuthStore()
 
 async function onSubmit(){
   try{
     const res = await login({ username: username.value, password: password.value })
-    localStorage.setItem('token', res.access || res.token)
-    localStorage.setItem('user', JSON.stringify(res.user))
-    router.push('/')
+    auth.setAuth(res.user, res.access || res.token)
+    router.replace('/orders')
   }catch(e){
     alert('登录失败')
   }
@@ -46,4 +47,3 @@ async function onSubmit(){
 </script>
 
 <style scoped></style>
-

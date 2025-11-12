@@ -20,4 +20,7 @@ api.interceptors.response.use(
 export const login = (payload: { username: string; password: string }) => api.post('/auth/login', payload)
 export const register = (payload: { username: string; password: string; email?: string; first_name?: string; last_name?: string; phone?: string }) => api.post('/auth/register', payload)
 
+export const getOrders = (params?: any) => api.get('/orders/', { params })
+export const getOrderById = (id: string) => api.get(`/orders/${id}/`)
+
 export default api

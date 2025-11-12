@@ -11,3 +11,9 @@ button.primary{background:#2563eb;color:#fff;border:none;border-radius:10px;heig
 button.ghost{background:transparent;color:#2563eb;border:1px solid #93c5fd;border-radius:10px;height:44px;padding:0 16px;cursor:pointer}
 a{color:#2563eb;text-decoration:none}
 
+/* App layout with sidebar */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;position:sticky;top:0;height:100vh;padding:16px;box-sizing:border-box}
+.sidebar a{display:block;padding:10px 12px;border-radius:8px;color:#0f172a}
+.sidebar a.active,.sidebar a:hover{background:rgba(37,99,235,0.12);color:#1d4ed8}
+.content{flex:1;min-width:0}
