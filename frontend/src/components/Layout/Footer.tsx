@@ -13,13 +13,14 @@ const Footer: React.FC = () => {
             <Title level={4} className="text-white mb-4">
               ADPrinting
             </Title>
-            <Text className="text-gray-300 block mb-4">
+            <Text className="text-gray-300 block mb-2">
               专业的数码广告打印服务提供商，致力于为客户提供高品质的打印解决方案。
             </Text>
+            <Text className="text-gray-300 block mb-4">
+              个人开发者：Ryan（Monash University）
+            </Text>
             <Space direction="vertical" size="small">
-              <Text className="text-gray-300">📧 contact@adprinting.com</Text>
-              <Text className="text-gray-300">📞 400-123-4567</Text>
-              <Text className="text-gray-300">📍 上海市浦东新区张江高科技园区</Text>
+              <Text className="text-gray-300">📧 hzhe0083@gmail.com</Text>
             </Space>
           </Col>
           

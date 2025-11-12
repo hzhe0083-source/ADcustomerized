@@ -72,7 +72,7 @@ const Header: React.FC = () => {
   ]
 
   return (
-    <AntHeader className="bg-white shadow-md px-4 fixed top-0 left-0 right-0 z-50">
+    <AntHeader className="bg-white shadow-md px-4 sticky top-0 z-[1000]">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div
